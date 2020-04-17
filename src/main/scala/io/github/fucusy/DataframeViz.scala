@@ -1,9 +1,7 @@
 package io.github.fucusy
 
-import org.joda.time.{DateTime, Days}
-import org.apache.spark.sql.{DataFrame, Dataset, SparkSession, functions => F}
+import org.apache.spark.sql.{DataFrame, Row, functions => F}
 import org.apache.spark.sql.expressions.Window
-
 import Viz.data2html
 
 
@@ -32,22 +30,28 @@ object DataframeViz {
 
   def displayDataFrame(df: DataFrame,
                        imageCol: Seq[String],
-                       limitShowNumber: Option[Int]): String = {
+                       limitShowNumber: Option[Int],
+                       title: String): String = {
     val columnNames: Seq[String] = df.columns
     df.withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)))))
       .filter(F.col("order") <= limitShowNumber)
+    val title = df.select("title").head().getAs[String]("title")
     val contentInfoMap =
       columnNames.map {
         col =>
           (col, df
-            .orderBy("order")
-            .select(F.col(col))
+            .select(F.col(col), F.col("order"))
             .collect()
-            .toSeq())
+            .map{case Row(col: String, order: Int) =>
+              (col, order)}
+            .sortBy(_._2)
+            .map(_._1)
+              .toSeq
+          )
       }
-    val description = df.select("description").head().getAs[String]("description")
     val imageCol = df.select("image_col").head().getSeq[String](0)
-    val table = data2html(contentInfoMap, description, imageCol)
+    val html = data2html(contentInfoMap, imageCol, title)
+    html
 
   }
 
