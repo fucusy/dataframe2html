@@ -40,12 +40,12 @@ object Viz {
                        imageCol: Seq[String],
                        title: String,
                        limitShowNumber: Int = -1): String = {
-    val ActuallimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
+    val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
     val columnNames: Seq[String] = df.columns
 
     val newDF = df
       .withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)).desc)))
-      .filter(F.col("order") <= ActuallimitShowNumber)
+      .filter(F.col("order") <= ActualLimitShowNumber)
 
     val contentInfo =
       columnNames.map {
