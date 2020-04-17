@@ -4,6 +4,7 @@ dist: trusty
 jdk:
   - openjdk8
 
+
 # These directories are cached at the end of the build
 cache:
   directories:
