@@ -1,20 +1,22 @@
 package io.github.fucusy
 
 import org.scalatest.funsuite.AnyFunSuite
-import DataframeViz.displayDataFrame
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession, functions => F}
-import spark.implicits._
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 
 import scala.io.Source
 
 class TestDataframeViz extends AnyFunSuite {
   test("Test data2html") {
+    val sparkConf = new SparkConf()
+      .setMaster("local[*]")
+      .setAppName("hello world")
+    lazy val spark: SparkSession = SparkSession.builder().config(sparkConf).getOrCreate()
+    import spark.implicits._
     val c2d = Seq(
       ("bob", "dance", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/bob.png"),
       ("amy", "swimming", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/amy.png")
-    ).toDF("")
-
+    ).toDF("name", "hobby", "picture")
 
 //    val dataSchema = StructType(
 ////      Array(StructField("name", StringType, true),

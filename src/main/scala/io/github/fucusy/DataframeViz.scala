@@ -32,13 +32,15 @@ object DataframeViz {
                        title: String,
                        limitShowNumber: Int = 10): String = {
     val columnNames: Seq[String] = df.columns
-    df.withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)))))
+
+    val newDF = df
+      .withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)).desc)))
       .filter(F.col("order") <= limitShowNumber)
-    val title = df.select("title").head().getAs[String]("title")
+
     val contentInfoMap =
       columnNames.map {
         col =>
-          (col, df
+          (col, newDF
             .select(F.col(col), F.col("order"))
             .collect()
             .map{case Row(col: String, order: Int) =>
@@ -48,21 +50,20 @@ object DataframeViz {
               .toSeq
           )
       }
-    val imageCol = df.select("image_col").head().getSeq[String](0)
+
     val html = data2html(contentInfoMap, imageCol, title)
     html
 
   }
 
   def displayMultipleDataFrame(df1: DataFrame, df2: DataFrame) = {
-    require(df1.columns.contains("title") && df2.columns.contains("title"))
     //    displayImage
     // make it to 2D with df1 col 0, df2 col 1
 
   }
 
   def display2DDataFrame(df: DataFrame) {
-    require(df.columns.contains("title") && df.columns.contains("row") && df.columns.contains("col"))
+    require(df.columns.contains("row") && df.columns.contains("col"))
     // drop "col"
 
 
