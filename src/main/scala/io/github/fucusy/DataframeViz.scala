@@ -35,7 +35,7 @@ object DataframeViz {
                        limitShowNumber: Option[Int]): String = {
     val columnNames: Seq[String] = df.columns
     df.withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)))))
-      .filter($"order" <= limitShowNumber)
+      .filter(F.col("order") <= limitShowNumber)
     val contentInfoMap =
       columnNames.map {
         col =>
@@ -54,7 +54,6 @@ object DataframeViz {
   def displayMultipleDataFrame(df1: DataFrame, df2: DataFrame) = {
     require(df1.columns.contains("title") && df2.columns.contains("title"))
     //    displayImage
-
     // make it to 2D with df1 col 0, df2 col 1
 
   }
