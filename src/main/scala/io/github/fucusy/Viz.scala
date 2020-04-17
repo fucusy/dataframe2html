@@ -2,7 +2,7 @@ package io.github.fucusy
 
 object Viz {
 
-  def data2html(column2data: Seq[(String, Seq[String])], title: String): String = {
+  def data2html(column2data: Seq[(String, Seq[String])], imgCols: Seq[String], title: String): String = {
     ""
     val tableContent = column2data.map{
       case (colName: String, data: Seq[String]) =>
