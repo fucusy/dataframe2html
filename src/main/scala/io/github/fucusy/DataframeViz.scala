@@ -6,7 +6,6 @@ import Viz.data2html
 
 
 object DataframeViz {
-  private val limitShowNumber = 10
 
   /**
     * suppose df have A, B, C, D, order these five columns
@@ -30,7 +29,7 @@ object DataframeViz {
 
   def displayDataFrame(df: DataFrame,
                        imageCol: Seq[String],
-                       limitShowNumber: Option[Int],
+                       limitShowNumber: Int = 10,
                        title: String): String = {
     val columnNames: Seq[String] = df.columns
     df.withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)))))

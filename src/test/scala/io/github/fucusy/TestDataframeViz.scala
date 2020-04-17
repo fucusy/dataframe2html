@@ -29,7 +29,7 @@ class TestDataframeViz extends AnyFunSuite {
 ////      .getOrCreate()
 ////
 ////    val data = spark.createDataFrame(spark.sparkContext.parallelize(c2d), dataSchema)
-    
+
     val title = "Users"
     val html = DataframeViz.displayDataFrame(c2d, Seq("picture"), title)
     val trueHtml = Source.fromFile("src/test/resources/data2html.html").mkString("")
