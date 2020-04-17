@@ -29,8 +29,8 @@ object DataframeViz {
 
   def displayDataFrame(df: DataFrame,
                        imageCol: Seq[String],
-                       limitShowNumber: Int = 10,
-                       title: String): String = {
+                       title: String,
+                       limitShowNumber: Int = 10): String = {
     val columnNames: Seq[String] = df.columns
     df.withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)))))
       .filter(F.col("order") <= limitShowNumber)
