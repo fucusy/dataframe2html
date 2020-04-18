@@ -36,10 +36,10 @@ object Viz {
     * @param limitShowNumber
     */
 
-  def dateframe2html(df: DataFrame,
-                       imageCol: Seq[String],
-                       title: String,
-                       limitShowNumber: Int = -1): String = {
+  def dataframe2html(df: DataFrame,
+                     imageCol: Seq[String],
+                     title: String,
+                     limitShowNumber: Int = -1): String = {
     val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
     val columnNames: Seq[String] = df.columns
 

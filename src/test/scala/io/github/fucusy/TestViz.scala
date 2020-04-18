@@ -44,7 +44,7 @@ class TestViz extends AnyFunSuite {
     ).toDF("name", "hobby", "picture")
 
     val title = "Users"
-    val html = Viz.dateframe2html(c2d, Seq("picture"), title)
+    val html = Viz.dataframe2html(c2d, Seq("picture"), title)
     val trueHtml = Source.fromFile("src/test/resources/data2html.html").mkString("")
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", "")
     )
