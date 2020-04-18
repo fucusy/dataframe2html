@@ -1,4 +1,4 @@
-organization := "fucusy"
+organization := "io.github.fucusy"
 name := "dataframe2html"
 version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.10"
