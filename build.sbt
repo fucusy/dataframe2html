@@ -1,6 +1,6 @@
 organization := "io.github.fucusy"
 name := "dataframe2html"
-version := "0.1.1-SNAPSHOT"
+version := "0.1.2"
 scalaVersion := "2.11.10"
 
 val sparkVersion  = "2.4.3"
@@ -12,8 +12,9 @@ libraryDependencies ++= Seq(
                             "org.apache.spark" %% "spark-sql"      % sparkVersion % "provided"
 )
 
-useGpg := true
+
 credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
+
 
 ThisBuild / organization := "io.github.fucusy"
 ThisBuild / organizationName := "Fucusy"
@@ -46,3 +47,7 @@ ThisBuild / publishTo := {
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 ThisBuild / publishMavenStyle := true
+
+import xerial.sbt.Sonatype._
+publishTo := sonatypePublishToBundle.value
+sonatypeBundleDirectory := (ThisBuild / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}"
