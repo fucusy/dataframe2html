@@ -12,58 +12,50 @@ object Viz {
     if (s.contains(".")) {
       val suffix = s.split("\\.").last
       s.startsWith("http") && imgSuffix.contains(suffix)
-    } else{
+    } else {
       false
     }
   }
-  /**
-    * suppose df have A, B, C, D, order these five columns
-    * first step: we get four information then can generate html
-    * - the description of whole df
-    * - the value of columns. make it a sequence: Seq[String, Seq[String] =
-    * Seq(A -> Seq[....],
-    * B -> Seq[....],
-    * C -> Seq[....],
-    * D -> Seq[....]) the seq value must in order
-    * - imageCol: tell us which column is image.
-    * - columnNames
-    *
-    * second step: using the four information got form step 1 to generate html
-    *
-    * @param df
-    * @param imageCol
-    * @param title : the description of whole df
-    * @param limitShowNumber
-    */
 
+  /**
+   * suppose df have A, B, C, D, order these five columns
+   * first step: we get four information then can generate html
+   * - the description of whole df
+   * - the value of columns. make it a sequence: Seq[String, Seq[String] =
+   * Seq(A -> Seq[....],
+   * B -> Seq[....],
+   * C -> Seq[....],
+   * D -> Seq[....]) the seq value must in order
+   * - imageCol: tell us which column is image.
+   * - columnNames
+   *
+   * second step: using the four information got form step 1 to generate html
+   *
+   * @param df
+   * @param imgCols
+   * @param title : the description of whole df
+   * @param limitShowNumber
+   */
   def dataframe2html(df: DataFrame,
-                     imageCol: Seq[String],
+                     imgCols: Seq[String],
                      title: String,
                      limitShowNumber: Int = -1): String = {
-    val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
     val columnNames: Seq[String] = df.columns
+    val collectDF = df.select(columnNames.head, columnNames.tail: _*)
+      .collect()
+      .map { r: Row => r.toSeq.map(_.toString) }
 
-    val newDF = df
-      .withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)).desc)))
-      .filter(F.col("order") <= ActualLimitShowNumber)
+    val actualLimitShowNumber = if (limitShowNumber == -1) {
+      collectDF(0).size
+    } else {
+      limitShowNumber
+    }
+    val contentInfo = columnNames.zipWithIndex.map {
+      case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
+    }
 
-    val contentInfo =
-      columnNames.map {
-        col =>
-          (col, newDF
-            .select(F.col(col), F.col("order"))
-            .collect()
-            .map{case Row(col: String, order: Int) =>
-              (col, order)}
-            .sortBy(_._2)
-            .map(_._1)
-            .toSeq
-          )
-      }
-
-    val html = data2html(contentInfo, imageCol, title)
+    val html = data2html(contentInfo, imgCols, title)
     html
-
   }
 
   /** *
