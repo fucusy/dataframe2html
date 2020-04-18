@@ -1,5 +1,8 @@
 package io.github.fucusy
 
+import org.apache.spark.sql.{DataFrame, Row, functions => F}
+import org.apache.spark.sql.expressions.Window
+
 object Viz {
 
   def imgUrl2tag(url: String) = s"""<img src="$url"/>"""
@@ -12,6 +15,55 @@ object Viz {
     } else{
       false
     }
+  }
+  /**
+    * suppose df have A, B, C, D, order these five columns
+    * first step: we get four information then can generate html
+    * - the description of whole df
+    * - the value of columns. make it a sequence: Seq[String, Seq[String] =
+    * Seq(A -> Seq[....],
+    * B -> Seq[....],
+    * C -> Seq[....],
+    * D -> Seq[....]) the seq value must in order
+    * - imageCol: tell us which column is image.
+    * - columnNames
+    *
+    * second step: using the four information got form step 1 to generate html
+    *
+    * @param df
+    * @param imageCol
+    * @param title : the description of whole df
+    * @param limitShowNumber
+    */
+
+  def dataframe2html(df: DataFrame,
+                     imageCol: Seq[String],
+                     title: String,
+                     limitShowNumber: Int = -1): String = {
+    val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
+    val columnNames: Seq[String] = df.columns
+
+    val newDF = df
+      .withColumn("order", F.row_number.over(Window.orderBy(F.col(columnNames(0)).desc)))
+      .filter(F.col("order") <= ActualLimitShowNumber)
+
+    val contentInfo =
+      columnNames.map {
+        col =>
+          (col, newDF
+            .select(F.col(col), F.col("order"))
+            .collect()
+            .map{case Row(col: String, order: Int) =>
+              (col, order)}
+            .sortBy(_._2)
+            .map(_._1)
+            .toSeq
+          )
+      }
+
+    val html = data2html(contentInfo, imageCol, title)
+    html
+
   }
 
   /** *
