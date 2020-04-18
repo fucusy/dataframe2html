@@ -1,7 +1,6 @@
 package io.github.fucusy
 
-import org.apache.spark.sql.{DataFrame, Row, functions => F}
-import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.{DataFrame, Row}
 
 object Viz {
 
