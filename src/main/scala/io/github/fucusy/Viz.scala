@@ -3,7 +3,6 @@ package io.github.fucusy
 import org.apache.spark.sql.{DataFrame, Row}
 
 object Viz {
-
   def imgUrl2tag(url: String) = s"""<img src="$url"/>"""
 
   def isImgUrl(s: String): Boolean = {
@@ -25,20 +24,39 @@ object Viz {
    * B -> Seq[....],
    * C -> Seq[....],
    * D -> Seq[....]) the seq value must in order
-   * - imageCol: tell us which column is image.
    * - columnNames
    *
    * second step: using the four information got form step 1 to generate html
    *
    * @param df
-   * @param imgCols
-   * @param title : the description of whole df
+   * @param imgCols : tell us which column is image.
+   * @param title   : the description of whole df
    * @param limitShowNumber
    */
   def dataframe2html(df: DataFrame,
                      imgCols: Seq[String],
                      title: String,
                      limitShowNumber: Int = -1): String = {
+    val contentInfo = dataframe2data(df, limitShowNumber)
+    val html = data2html(contentInfo, imgCols, title)
+    html
+  }
+
+  /**
+   * Automatically convert img url to img tag
+   * @param df
+   * @param title   : the description of whole df
+   * @param limitShowNumber
+   */
+  def dataframe2html(df: DataFrame,
+                     title: String,
+                     limitShowNumber: Int): String = {
+    val contentInfo = dataframe2data(df, limitShowNumber)
+    val html = data2html(contentInfo, title)
+    html
+  }
+
+  def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
     val collectDF = df.select(columnNames.head, columnNames.tail: _*)
       .collect()
@@ -49,13 +67,11 @@ object Viz {
     } else {
       limitShowNumber
     }
-    val contentInfo = columnNames.zipWithIndex.map {
+    columnNames.zipWithIndex.map {
       case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
     }
-
-    val html = data2html(contentInfo, imgCols, title)
-    html
   }
+
 
   /** *
    * convert data to html
