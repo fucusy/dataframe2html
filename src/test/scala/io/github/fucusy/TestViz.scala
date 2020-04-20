@@ -59,8 +59,8 @@ class TestViz extends AnyFunSuite {
     val c2d = Seq(
       ("bob", "dance", 1, 1, "Users","https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/bob.png"),
       ("amy", "swimming", 1, 2, "Users", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/amy.png"),
-      ("rose", "no", 2, 1,"Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/rose.png"),
-      ("plum blossom", "no", 2, 2,"Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/plum_blossom.png")
+      ("rose", "no", 2, 1,"Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/5c3f7f85a1160d8696f3f57b29690a4e92739c7e/src/test/resources/rose.png"),
+      ("plum blossom", "no", 2, 2,"Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/5c3f7f85a1160d8696f3f57b29690a4e92739c7e/src/test/resources/plum_blossom.png")
 
     ).toDF("name", "hobby", "col", "row", "title", "picture")
 
