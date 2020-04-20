@@ -1,6 +1,6 @@
 organization := "io.github.fucusy"
 name := "dataframe2html"
-version := "0.1.3"
+version := "0.1.4"
 scalaVersion := "2.11.10"
 
 val sparkVersion  = "2.4.3"
