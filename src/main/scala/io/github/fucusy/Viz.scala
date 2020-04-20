@@ -76,7 +76,15 @@ object Viz {
     val columnNames: Seq[String] = df.columns
     val collectDF = df.select(columnNames.head, columnNames.tail: _*)
       .collect()
-      .map { r: Row => r.toSeq.map(_.toString) }
+      .map { r: Row =>
+        r.toSeq.map { item =>
+          if (item == null) {
+            "null"
+          } else {
+            item.toString
+          }
+        }
+      }
 
     val actualLimitShowNumber = if (limitShowNumber == -1) {
       collectDF(0).size
