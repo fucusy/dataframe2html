@@ -66,7 +66,12 @@ object Viz {
       }
       .mkString("\n")
     s"""
+      <!DOCTYPE html>
         <html>
+          <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            <style>p.red { color: red; } p.more { color: red; font-weight: bold; }</style>
+          </head>
           <body>$tables</body>
         </html>
       """
