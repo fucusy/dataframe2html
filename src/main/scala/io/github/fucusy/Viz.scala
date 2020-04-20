@@ -57,7 +57,7 @@ object Viz {
              .drop("col", "row")
           val title = oneRowDF.select("title").first().getString(0)
           val contentInfo = dataFrame2data(oneRowDF.drop("title"), limitShowNumber)
-        data2table(contentInfo, title)
+          data2table(contentInfo, title)
       }
       .mkString("\n")
     s"""
@@ -98,8 +98,8 @@ object Viz {
   }
 
 
-  /** *
-    * convert data to html
+  /**
+    *  convert data to html
     *
     * @param column2data the data, each record contains column name, and a list of string
     * @param imgCols     indicate the image url columns, the url will be convert to img tag
@@ -135,11 +135,10 @@ object Viz {
        |""".stripMargin
   }
 
-  /** *
+  /**
     * convert data to html
     *
     * @param column2data the data, each record contains column name, and a list of string
-    * @param imgCols     indicate the image url columns, the url will be convert to img tag
     * @param title
     * @return
     */
@@ -169,7 +168,7 @@ object Viz {
        |""".stripMargin
   }
 
-  /** *
+  /**
    * convert data to html, it will automatically convert image url to img tag in html
    *
    * @param column2data the data, each element contains column name, and a list of string
