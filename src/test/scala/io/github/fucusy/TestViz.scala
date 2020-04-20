@@ -39,13 +39,13 @@ class TestViz extends AnyFunSuite {
     lazy val spark: SparkSession = SparkSession.builder().config(sparkConf).getOrCreate()
     import spark.implicits._
     val c2d = Seq(
-      ("bob", "dance", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/bob.png"),
-      ("amy", "swimming", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/amy.png")
-    ).toDF("name", "hobby", "picture")
+      ("bob", null, "dance", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/bob.png"),
+      ("amy", null,"swimming", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/amy.png")
+    ).toDF("name", "null_col", "hobby", "picture")
 
     val title = "Users"
     val html = Viz.dataframe2html(c2d, Seq("picture"), title)
-    val trueHtml = Source.fromFile("src/test/resources/data2html.html").mkString("")
+    val trueHtml = Source.fromFile("src/test/resources/dataframe2html.html").mkString("")
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", "")
     )
   }
