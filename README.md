@@ -5,7 +5,7 @@ Make the ability to show the image and the data of dataframe in notebook.
 
 The tool convert dataframe to HTML, each columns in HTML is each record in dataframe
 
-– All image url become <img> tag
+- All image url become <img> tag
 
 ## How to use
 For Databricks notebook
