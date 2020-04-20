@@ -1,6 +1,7 @@
 package io.github.fucusy
 
 import org.apache.spark.sql.{DataFrame, Row, functions => F}
+import org.apache.spark.sql.expressions.Window
 
 object Viz {
   def imgUrl2tag(url: String) = s"""<img src="$url"/>"""
@@ -33,30 +34,36 @@ object Viz {
    * @param title   : the description of whole df
    * @param limitShowNumber
    */
-  def dataFrame2html(df: DataFrame,
+  def dataframe2html(df: DataFrame,
                      imgCols: Seq[String],
                      title: String,
                      limitShowNumber: Int = -1): String = {
-    val contentInfo = dataFrame2data(df, limitShowNumber)
+    val contentInfo = dataframe2data(df, limitShowNumber)
     val html = data2html(contentInfo, imgCols, title)
     html
   }
 
-  def dataFrame2html2D(df: DataFrame,
-                       limitShowNumber: Int = -1): String = {
-    require(df.columns.contains("row") && df.columns.contains("col") && df.columns.contains("title"))
+  /**
+    *
+    * @param df which need to contain column "row" to let us know which row you want to show. you should start with 1 in this column
+    *           df also need to contain column "title" to let us know the title of each visualization row.
+    *           you need to give the same title the all data you want to show in the same visualization row.
+    *           or we will randomly choose one title.
+    * @param limitShowNumber
+    * @return
+    */
 
-    val rowNum: Int = df.select("col").agg(F.max("col").as("max_col"))
-      .select("max_col")
-      .first()
-      .getInt(0)
+  def dataframe2html2D(df: DataFrame,
+                       limitShowNumber: Int = -1): String = {
+    require(df.columns.contains("row") && df.columns.contains("title"))
+    val rowNum = df.select("row").distinct().count().toInt
     val tables = (1 to rowNum)
       .map {
         case i =>
-          val oneRowDF = df.filter(F.col("col") === i)
-             .drop("col", "row")
+          val oneRowDF = df.filter(F.col("row") === i)
+             .drop("row")
           val title = oneRowDF.select("title").first().getString(0)
-          val contentInfo = dataFrame2data(oneRowDF.drop("title"), limitShowNumber)
+          val contentInfo = dataframe2data(oneRowDF.drop("title"), limitShowNumber)
           data2table(contentInfo, title)
       }
       .mkString("\n")
@@ -73,15 +80,15 @@ object Viz {
    * @param title   : the description of whole df
    * @param limitShowNumber
    */
-  def dataFrame2html(df: DataFrame,
+  def dataframe2html(df: DataFrame,
                      title: String,
                      limitShowNumber: Int): String = {
-    val contentInfo = dataFrame2data(df, limitShowNumber)
+    val contentInfo = dataframe2data(df, limitShowNumber)
     val html = data2html(contentInfo, title)
     html
   }
 
-  def dataFrame2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
+  def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
     val collectDF = df.select(columnNames.head, columnNames.tail: _*)
       .collect()
@@ -107,29 +114,11 @@ object Viz {
     * @return
     */
   def data2html(column2data: Seq[(String, Seq[String])], imgCols: Seq[String], title: String): String = {
-    val tableContent = column2data.map {
-      case (colName: String, elements: Seq[String]) =>
-        val dataHtml = elements
-          .map {
-            element =>
-              if (imgCols.contains(colName)) {
-                imgUrl2tag(element)
-              } else {
-                element
-              }
-          }
-          .map(element => s"<td>$element</td>").mkString("")
-        s"<tr><th>$colName</th>$dataHtml</tr>"
-    }.mkString("")
+    val tableContent = data2table(column2data, title)
     s"""
        |<html>
        |<body>
-       |<h3>$title</h3>
-       |<table>
-       |  <tbody>
        |  $tableContent
-       |  </tbody>
-       |</table>
        |</body>
        |</html>
        |""".stripMargin
