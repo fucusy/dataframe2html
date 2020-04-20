@@ -48,7 +48,7 @@ class TestViz extends AnyFunSuite {
       ("bob", "dance", 1, "Users","https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/bob.png"),
       ("amy", "swimming", 1, "Users", "https://raw.githubusercontent.com/fucusy/dataframe2html/57c8b41dfc7368ad7d371c0a94614412abfb1de6/src/test/resources/amy.png"),
       ("rose", "no", 2, "Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/41a1baae2dec4d8a815ceceece77d61213d4b1c1/src/test/resources/rose.png"),
-      ("plum blossom", "no", 2, "Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/a91ba8594a5eccc5a78d953e996169b7a0cc0935/src/test/resources/plum_blossom_big.png")
+      ("plum blossom", "no", 2, "Flowers", "https://raw.githubusercontent.com/fucusy/dataframe2html/41a1baae2dec4d8a815ceceece77d61213d4b1c1/src/test/resources/plum_blossom.png")
 
     ).toDF("name", "hobby", "row", "title", "picture")
 
