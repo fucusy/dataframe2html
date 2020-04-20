@@ -24,22 +24,20 @@ object Viz {
    * Seq(A -> Seq[....],
    * B -> Seq[....],
    * C -> Seq[....],
-   * D -> Seq[....]) the seq value must in order
+   * D -> Seq[....]) if the seq value is image, we will handle it automatically and specially.
    * - columnNames
    *
    * second step: using the four information got form step 1 to generate html
    *
    * @param df
-   * @param imgCols : tell us which column is image.
    * @param title   : the description of whole df
    * @param limitShowNumber
    */
   def dataframe2html(df: DataFrame,
-                     imgCols: Seq[String],
                      title: String,
                      limitShowNumber: Int = -1): String = {
     val contentInfo = dataframe2data(df, limitShowNumber)
-    val html = data2html(contentInfo, imgCols, title)
+    val html = data2html(contentInfo, title)
     html
   }
 
@@ -74,20 +72,6 @@ object Viz {
       """
   }
 
-  /**
-   * Automatically convert img url to img tag
-   * @param df
-   * @param title   : the description of whole df
-   * @param limitShowNumber
-   */
-  def dataframe2html(df: DataFrame,
-                     title: String,
-                     limitShowNumber: Int): String = {
-    val contentInfo = dataframe2data(df, limitShowNumber)
-    val html = data2html(contentInfo, title)
-    html
-  }
-
   def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
     val collectDF = df.select(columnNames.head, columnNames.tail: _*)
@@ -106,14 +90,13 @@ object Viz {
 
 
   /**
-    *  convert data to html
+    * convert data to html, it will automatically convert image url to img tag in html
     *
-    * @param column2data the data, each record contains column name, and a list of string
-    * @param imgCols     indicate the image url columns, the url will be convert to img tag
+    * @param column2data the data, each element contains column name, and a list of string
     * @param title
     * @return
     */
-  def data2html(column2data: Seq[(String, Seq[String])], imgCols: Seq[String], title: String): String = {
+  def data2html(column2data: Seq[(String, Seq[String])], title: String): String = {
     val tableContent = data2table(column2data, title)
     s"""
        |<html>
@@ -125,7 +108,7 @@ object Viz {
   }
 
   /**
-    * convert data to html
+    * convert data to the table part of html, it will automatically convert image url to img tag in html
     *
     * @param column2data the data, each record contains column name, and a list of string
     * @param title
@@ -155,25 +138,5 @@ object Viz {
        |  </tbody>
        |</table>
        |""".stripMargin
-  }
-
-  /**
-   * convert data to html, it will automatically convert image url to img tag in html
-   *
-   * @param column2data the data, each element contains column name, and a list of string
-   * @param title
-   * @return
-   */
-  def data2html(column2data: Seq[(String, Seq[String])], title: String): String = {
-    val updatedData = column2data.map {
-      case (colName: String, elements: Seq[String]) => (colName, elements.map { element =>
-        if (isImgUrl(element)) {
-          imgUrl2tag(element)
-        } else {
-          element
-        }
-      })
-    }
-    data2html(updatedData, Seq(), title)
   }
 }
