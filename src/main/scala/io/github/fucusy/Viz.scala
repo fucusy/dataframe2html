@@ -1,10 +1,9 @@
 package io.github.fucusy
 
 import org.apache.spark.sql.{DataFrame, Row, functions => F}
-import org.apache.spark.sql.expressions.Window
 
 object Viz {
-  def imgUrl2tag(url: String) = s"""<img src="$url"/>"""
+  def imgUrl2tag(url: String) = s"""<img src="$url" height="250" width="250"/>"""
 
   def isImgUrl(s: String): Boolean = {
     val imgSuffix = Seq("jpg", "png", "gif")
@@ -66,14 +65,9 @@ object Viz {
       }
       .mkString("\n")
     s"""
-      <!DOCTYPE html>
-        <html>
-          <head>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-            <style>p.red { color: red; } p.more { color: red; font-weight: bold; }</style>
-          </head>
-          <body>$tables</body>
-        </html>
+      <html>
+        <body>$tables</body>
+      </html>
       """
   }
 
