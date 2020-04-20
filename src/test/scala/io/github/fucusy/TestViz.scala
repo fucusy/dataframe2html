@@ -32,7 +32,7 @@ class TestViz extends AnyFunSuite {
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", "")
     )
   }
-  test("Test dataFrame2html") {
+  test("Test dataframe2html") {
     val sparkConf = new SparkConf()
       .setMaster("local[*]")
       .setAppName("hello world")
@@ -50,7 +50,7 @@ class TestViz extends AnyFunSuite {
     )
   }
 
-  test("Test dataFrame2html2D") {
+  test("Test dataframe2html2D") {
     val sparkConf = new SparkConf()
       .setMaster("local[*]")
       .setAppName("hello world")
@@ -65,7 +65,7 @@ class TestViz extends AnyFunSuite {
     ).toDF("name", "hobby", "row", "title", "picture")
 
     val html = Viz.dataframe2html2D(c2d)
-    val trueHtml = Source.fromFile("src/test/resources/dataFrame2html2D.html").mkString("")
+    val trueHtml = Source.fromFile("src/test/resources/dataframe2html2D.html").mkString("")
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", "")
     )
   }
