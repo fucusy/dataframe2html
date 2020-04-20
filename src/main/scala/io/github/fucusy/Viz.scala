@@ -65,9 +65,9 @@ object Viz {
       }
       .mkString("\n")
     s"""
-      <html>
-        <body>$tables</body>
-      </html>
+        <html>
+          <body>$tables</body>
+        </html>
       """
   }
 
