@@ -10,7 +10,7 @@ The tool convert dataframe to HTML, each columns in HTML is each record in dataf
 ## How to use
 For Databricks notebook
 
- 1. Install Coordinates: io.github.fucusy:dataframe2html_2.11:0.1.3 from Maven to your cluster
+ 1. Install Coordinates: `io.github.fucusy:dataframe2html_2.11:0.1.4` from Maven to your cluster
  2. Add `import io.github.fucusy.VizImplicit.VizDataFrame` to add toHTML function to DataFrame implicitly
  3. Define your dataframe, `df`
  4. Display the visualization, `displayHTML(df.toHTML())`
