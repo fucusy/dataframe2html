@@ -82,7 +82,6 @@ object Viz {
 
     val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
     val newDF = df
-      .na.fill("null", columnNames)
       .transform(addColOrder)
       .filter(F.col("col_order") <= ActualLimitShowNumber)
 
