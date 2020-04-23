@@ -1,6 +1,7 @@
 package io.github.fucusy
 
 import org.apache.spark.sql.{DataFrame, Row, functions => F}
+import org.apache.spark.sql.expressions.Window
 
 object Viz {
   def imgUrl2tag(url: String) = s"""<img src="$url" width="100"/>"""
@@ -42,7 +43,7 @@ object Viz {
 
   /**
    *
-   * @param df which need to contain column "row" to let us know which row you want to show. you should start with 1 in this column
+   * @param df which need to contain column "row_order" to let us know which row you want to show. you should start with 1 in this column
    *           df also need to contain column "title" to let us know the title of each visualization row.
    *           you need to give the same title the all data you want to show in the same visualization row.
    *           or we will randomly choose one title.
@@ -52,13 +53,14 @@ object Viz {
 
   def dataframe2html2D(df: DataFrame,
                        limitShowNumber: Int = -1): String = {
-    require(df.columns.contains("row") && df.columns.contains("title"))
-    val rowNum = df.select("row").distinct().count().toInt
+    require(df.columns.contains("row_order") && df.columns.contains("title"))
+    val rowNum = df.select("row_order").distinct().count().toInt
     val tables = (1 to rowNum)
+      .par
       .map {
         i =>
-          val oneRowDF = df.filter(F.col("row") === i)
-            .drop("row")
+          val oneRowDF = df.filter(F.col("row_order") === i)
+            .drop("row_order")
           val title = oneRowDF.select("title").first().getString(0)
           val contentInfo = dataframe2data(oneRowDF.drop("title"), limitShowNumber)
           data2table(contentInfo, title)
@@ -67,28 +69,40 @@ object Viz {
     warpBody(tables)
   }
 
+  private def addColOrder(df: DataFrame): DataFrame = {
+    if(df.columns.contains("col_order")) {
+      df
+    }else{
+      df.withColumn("col_order", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
+    }
+  }
+
   def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
-    val collectDF = df.select(columnNames.head, columnNames.tail: _*)
-      .collect()
-      .map { r: Row =>
-        r.toSeq.map { item =>
-          if (item == null) {
-            "null"
-          } else {
-            item.toString
-          }
-        }
-      }
 
-    val actualLimitShowNumber = if (limitShowNumber == -1) {
-      collectDF(0).size
-    } else {
-      limitShowNumber
-    }
-    columnNames.zipWithIndex.map {
-      case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
-    }
+    val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
+    val newDF = df
+      .na.fill("null", columnNames)
+      .transform(addColOrder)
+      .filter(F.col("col_order") <= ActualLimitShowNumber)
+
+    val contentInfo =
+      columnNames
+        .filter(_ != "col_order")
+        .map { col =>
+          (col, newDF
+            .withColumn(col, F.col(col).cast("string"))
+            .withColumn(col, F.when(F.col(col).isNull, "null").otherwise(F.col(col)))
+            .select(F.col(col), F.col("col_order"))
+            .collect()
+            .map{case Row(col: String, col_order: Int) =>
+              (col, col_order)}
+            .sortBy(_._2)
+            .map(_._1)
+            .toSeq
+          )
+      }
+    contentInfo
   }
 
 

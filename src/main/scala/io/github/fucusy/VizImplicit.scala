@@ -10,7 +10,7 @@ object VizImplicit {
     }
     def toHTML2D(limit: Int = 100): String = {
       val columnNames = df.columns
-      if(columnNames.contains("title" )){
+      if(columnNames.contains("title")){
         Viz.dataframe2html2D(df, limit)
       }
       else{
