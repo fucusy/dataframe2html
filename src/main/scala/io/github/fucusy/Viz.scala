@@ -62,7 +62,7 @@ object Viz {
     require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
     val addRowTitleDF = if(rowTitleCol != None) {df}
     else{
-      df.withColumn("row_title", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
+      df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)))
     }
 
     val rowTitleColumn: Column = rowTitleCol match {
