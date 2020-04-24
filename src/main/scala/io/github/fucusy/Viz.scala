@@ -1,6 +1,6 @@
 package io.github.fucusy
 
-import org.apache.spark.sql.{DataFrame, Row, functions => F}
+import org.apache.spark.sql.{Column, DataFrame, Row, functions => F}
 import org.apache.spark.sql.expressions.Window
 
 object Viz {
@@ -36,66 +36,98 @@ object Viz {
   def dataframe2html(df: DataFrame,
                      title: String,
                      limitShowNumber: Int = -1): String = {
-    val contentInfo = dataframe2data(df, limitShowNumber)
+    val contentInfo = dataframe2data(df, limitShowNumber = limitShowNumber)
     val html = data2html(contentInfo, title)
     html
   }
 
   /**
-   *
-   * @param df which need to contain column "row_order" to let us know which row you want to show. you should start with 1 in this column
-   *           df also need to contain column "title" to let us know the title of each visualization row.
-   *           you need to give the same title the all data you want to show in the same visualization row.
-   *           or we will randomly choose one title.
-   * @param limitShowNumber
-   * @return
-   */
+    * this method will change dataframe to html which is very convenient to show as a 2D visualization.
+    * since it's a 2D visualization, you must provide the rowOrderCol
+    * @param df: the dataframe you want to convert to html
+    * @param rowOrderCol: the row order column
+    * @param colOrderCol:the col order column
+    * @param rowTitleCol: the row title column, for contents in the same row,
+    *                   you must provide the same title, if no, we will randomly choose one.
+    * @param limitShowNumber
+    * @return
+    */
 
   def dataframe2html2D(df: DataFrame,
-                       limitShowNumber: Int = -1): String = {
-    require(df.columns.contains("row_order") && df.columns.contains("title"))
-    val rowNum = df.select("row_order").distinct().count().toInt
-    val tables = (1 to rowNum)
-      .par
+                       rowOrderCol: String,
+                       colOrderCol: Option[String] = None,
+                       rowTitleCol: Option[String] = None,
+                       limitShowNumber: Int = -1
+                       ): String = {
+    require(df.columns.contains(rowOrderCol))
+    val addRowTitleDF = df.transform(addRowTitle(rowTitleCol))
+
+    val rowTitleColumn: Column = rowTitleCol match {
+      case Some(rowTitle) => df.col(rowTitle)
+      case None      => df.col("row_title")
+    }
+    val rowNumList = addRowTitleDF.select(rowOrderCol)
+      .distinct()
+      .collect
+      .map(_.getAs[Int](rowOrderCol))
+      .sorted
+    val tables = rowNumList
       .map {
         i =>
-          val oneRowDF = df.filter(F.col("row_order") === i)
-            .drop("row_order")
-          val title = oneRowDF.select("title").first().getString(0)
-          val contentInfo = dataframe2data(oneRowDF.drop("title"), limitShowNumber)
+          val oneRowDF = df.filter(F.col(rowOrderCol) === i)
+            .drop(rowOrderCol)
+          val title = oneRowDF.select(rowTitleColumn).first().getString(0)
+          val contentInfo = dataframe2data(oneRowDF.drop(rowTitleColumn), colOrderCol, limitShowNumber)
           data2table(contentInfo, title)
       }
       .mkString("\n")
     warpBody(tables)
   }
 
-  private def addColOrder(df: DataFrame): DataFrame = {
-    if(df.columns.contains("col_order")) {
+
+  private def addRowTitle(rowTitle: Option[String])(df: DataFrame): DataFrame = {
+    if(rowTitle != None) {
+      df
+    }else{
+      df.withColumn("row_title", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
+    }
+  }
+
+  private def addColOrder(colOrder: Option[String])(df: DataFrame): DataFrame = {
+    if(colOrder != None) {
       df
     }else{
       df.withColumn("col_order", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
     }
   }
 
-  def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
+  def dataframe2data(df: DataFrame,
+                     colOrderCol: Option[String] = None,
+                     limitShowNumber: Int = -1
+                     ): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
-
     val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
-    val newDF = df
-      .transform(addColOrder)
-      .filter(F.col("col_order") <= ActualLimitShowNumber)
+
+    val addColOrderDF = df
+      .transform(addColOrder(colOrderCol))
+
+    val colOrderColumnName: String = colOrderCol match {
+      case Some(colOrder) => colOrder
+      case None      => "col_order"
+    }
 
     val contentInfo =
       columnNames
-        .filter(_ != "col_order")
+        .filter(_ != colOrderColumnName)
         .map { col =>
-          (col, newDF
+          (col, addColOrderDF
+            .filter(F.col(colOrderColumnName) <= ActualLimitShowNumber)
             .withColumn(col, F.col(col).cast("string"))
             .withColumn(col, F.when(F.col(col).isNull, "null").otherwise(F.col(col)))
-            .select(F.col(col), F.col("col_order"))
+            .select(F.col(col), F.col(colOrderColumnName))
             .collect()
-            .map{case Row(col: String, col_order: Int) =>
-              (col, col_order)}
+            .map{case Row(col: String, colOrderColumnName: Int) =>
+              (col, colOrderColumnName)}
             .sortBy(_._2)
             .map(_._1)
             .toSeq

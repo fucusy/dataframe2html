@@ -56,8 +56,8 @@ class TestViz extends AnyFunSuite {
 
     ).toDF("name", "hobby", "row_order", "title", "picture")
 
-    val html = Viz.dataframe2html2D(c2d)
-    val htmlFromImplicit = c2d.toHTML2D()
+    val html = Viz.dataframe2html2D(c2d, "row_order", rowTitleCol = Some("title"))
+    val htmlFromImplicit = c2d.toHTML2D("row_order", rowTitleCol = Some("title"))
     val trueHtml = Source.fromFile("src/test/resources/dataframe2html2D.html").mkString("")
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", ""))
     assert(htmlFromImplicit.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", ""))
@@ -76,8 +76,8 @@ class TestViz extends AnyFunSuite {
 
     ).toDF("name", "hobby", "row_order", "col_order", "title", "picture")
 
-    val html = Viz.dataframe2html2D(c2d)
-    val htmlFromImplicit = c2d.toHTML2D()
+    val html = Viz.dataframe2html2D(c2d, "row_order", Some("col_order"), rowTitleCol = Some("title"))
+    val htmlFromImplicit = c2d.toHTML2D("row_order", Some("col_order"), rowTitleCol = Some("title"))
     val trueHtml = Source.fromFile("src/test/resources/dataframe2html2DColOrder.html").mkString("")
     assert(html.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", ""))
     assert(htmlFromImplicit.replaceAll("\\s", "") == trueHtml.replaceAll("\\s", ""))
