@@ -59,7 +59,7 @@ object Viz {
                        rowTitleCol: Option[String] = None,
                        limitShowNumber: Int = -1
                        ): String = {
-    require(df.columns.contains(rowOrderCol))
+    require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
     val addRowTitleDF = df.transform(addRowTitle(rowTitleCol))
 
     val rowTitleColumn: Column = rowTitleCol match {
