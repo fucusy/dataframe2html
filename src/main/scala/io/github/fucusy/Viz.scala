@@ -60,7 +60,11 @@ object Viz {
                        limitShowNumber: Int = -1
                        ): String = {
     require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
-    val addRowTitleDF = df.transform(addRowTitle(rowTitleCol))
+    val addRowTitleDF = if(rowTitleCol != None) {df}
+    else{
+      df.withColumn("row_title", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
+    }
+      df.transform(addRowTitle(rowTitleCol))
 
     val rowTitleColumn: Column = rowTitleCol match {
       case Some(rowTitle) => df.col(rowTitle)
@@ -82,14 +86,6 @@ object Viz {
       }
       .mkString("\n")
     warpBody(tables)
-  }
-
-  private def addRowTitle(rowTitle: Option[String])(df: DataFrame): DataFrame = {
-    if(rowTitle != None) {
-      df
-    }else{
-      df.withColumn("row_title", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
-    }
   }
 
   def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
