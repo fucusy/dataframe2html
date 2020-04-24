@@ -64,7 +64,6 @@ object Viz {
     else{
       df.withColumn("row_title", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
     }
-      df.transform(addRowTitle(rowTitleCol))
 
     val rowTitleColumn: Column = rowTitleCol match {
       case Some(rowTitle) => df.col(rowTitle)
