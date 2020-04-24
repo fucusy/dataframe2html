@@ -36,14 +36,14 @@ object Viz {
   def dataframe2html(df: DataFrame,
                      title: String,
                      limitShowNumber: Int = -1): String = {
-    val contentInfo = dataframe2data(df, limitShowNumber = limitShowNumber)
+    val contentInfo = dataframe2data(df, limitShowNumber)
     val html = data2html(contentInfo, title)
     html
   }
 
   /**
     * this method will change dataframe to html which is very convenient to show as a 2D visualization.
-    * since it's a 2D visualization, you must provide the rowOrderCol
+    * since it's a 2D visualization, you must provide rowOrderCol and colOrderCol.
     * @param df: the dataframe you want to convert to html
     * @param rowOrderCol: the row order column
     * @param colOrderCol:the col order column
@@ -111,10 +111,10 @@ object Viz {
     } else {
       limitShowNumber
     }
-      columnNames.zipWithIndex.map {
-        case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
-      }
+    columnNames.zipWithIndex.map {
+      case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
     }
+  }
 
 
   /**
