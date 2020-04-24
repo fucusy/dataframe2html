@@ -55,7 +55,7 @@ object Viz {
 
   def dataframe2html2D(df: DataFrame,
                        rowOrderCol: String,
-                       colOrderCol: Option[String] = None,
+                       colOrderCol: String,
                        rowTitleCol: Option[String] = None,
                        limitShowNumber: Int = -1
                        ): String = {
@@ -77,13 +77,12 @@ object Viz {
           val oneRowDF = df.filter(F.col(rowOrderCol) === i)
             .drop(rowOrderCol)
           val title = oneRowDF.select(rowTitleColumn).first().getString(0)
-          val contentInfo = dataframe2data(oneRowDF.drop(rowTitleColumn), colOrderCol, limitShowNumber)
+          val contentInfo = dataframe2data(oneRowDF.drop(rowTitleColumn).orderBy(colOrderCol), limitShowNumber)
           data2table(contentInfo, title)
       }
       .mkString("\n")
     warpBody(tables)
   }
-
 
   private def addRowTitle(rowTitle: Option[String])(df: DataFrame): DataFrame = {
     if(rowTitle != None) {
@@ -93,48 +92,29 @@ object Viz {
     }
   }
 
-  private def addColOrder(colOrder: Option[String])(df: DataFrame): DataFrame = {
-    if(colOrder != None) {
-      df
-    }else{
-      df.withColumn("col_order", F.row_number.over(Window.orderBy(F.col(df.columns(0)).desc)))
-    }
-  }
-
-  def dataframe2data(df: DataFrame,
-                     colOrderCol: Option[String] = None,
-                     limitShowNumber: Int = -1
-                     ): Seq[(String, Seq[String])] = {
+  def dataframe2data(df: DataFrame, limitShowNumber: Int = -1): Seq[(String, Seq[String])] = {
     val columnNames: Seq[String] = df.columns
-    val ActualLimitShowNumber = if(limitShowNumber == -1){df.count()} else{limitShowNumber}
-
-    val addColOrderDF = df
-      .transform(addColOrder(colOrderCol))
-
-    val colOrderColumnName: String = colOrderCol match {
-      case Some(colOrder) => colOrder
-      case None      => "col_order"
-    }
-
-    val contentInfo =
-      columnNames
-        .filter(_ != colOrderColumnName)
-        .map { col =>
-          (col, addColOrderDF
-            .filter(F.col(colOrderColumnName) <= ActualLimitShowNumber)
-            .withColumn(col, F.col(col).cast("string"))
-            .withColumn(col, F.when(F.col(col).isNull, "null").otherwise(F.col(col)))
-            .select(F.col(col), F.col(colOrderColumnName))
-            .collect()
-            .map{case Row(col: String, colOrderColumnName: Int) =>
-              (col, colOrderColumnName)}
-            .sortBy(_._2)
-            .map(_._1)
-            .toSeq
-          )
+    val collectDF = df.select(columnNames.head, columnNames.tail: _*)
+      .collect()
+      .map { r: Row =>
+        r.toSeq.map { item =>
+          if (item == null) {
+            "null"
+          } else {
+            item.toString
+          }
+        }
       }
-    contentInfo
-  }
+
+    val actualLimitShowNumber = if (limitShowNumber == -1) {
+      collectDF(0).size
+    } else {
+      limitShowNumber
+    }
+      columnNames.zipWithIndex.map {
+        case (col: String, idx: Int) => (col, collectDF.map(_ (idx)).slice(0, actualLimitShowNumber).toSeq)
+      }
+    }
 
 
   /**

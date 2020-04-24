@@ -9,7 +9,7 @@ object VizImplicit {
       Viz.dataframe2html(df, title, limit)
     }
     def toHTML2D(rowOrder: String,
-                 colOrderCol: Option[String] = None,
+                 colOrderCol: String,
                  rowTitleCol: Option[String] = None,
                  limit: Int = 100
                 ): String = {
