@@ -60,15 +60,8 @@ object Viz {
                        limitShowNumber: Int = -1
                        ): String = {
     require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
-    val addRowTitleDF = if(rowTitleCol != None) {df}
-    else{
-      df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)))
-    }
-
-    val rowTitleColumn: Column = rowTitleCol match {
-      case Some(rowTitle) => df.col(rowTitle)
-      case None      => df.col("row_title")
-    }
+    val addRowTitleDF = df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)))
+    val rowTitleColumn: Column = df.col("row_title")
     val rowNumList = addRowTitleDF.select(rowOrderCol)
       .distinct()
       .collect
