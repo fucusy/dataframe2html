@@ -60,9 +60,13 @@ object Viz {
                        limitShowNumber: Int = -1
                        ): String = {
     require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
-    val addRowTitleDF = df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)))
-    val rowTitleColumn: Column = df.col("row_title")
-    val rowNumList = addRowTitleDF.select(rowOrderCol)
+    val addRowTitleDF = df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)).cast("string"))
+    val dropOriginRowTitleColDF = if(rowTitleCol != None){
+      addRowTitleDF.drop(rowTitleCol.get)
+      }else{addRowTitleDF}
+
+    val rowTitleColumn: Column = dropOriginRowTitleColDF.col("row_title")
+    val rowNumList = dropOriginRowTitleColDF.select(rowOrderCol)
       .distinct()
       .collect
       .map(_.getAs[Int](rowOrderCol))
@@ -70,7 +74,7 @@ object Viz {
     val tables = rowNumList
       .map {
         i =>
-          val oneRowDF = df.filter(F.col(rowOrderCol) === i)
+          val oneRowDF = dropOriginRowTitleColDF.filter(F.col(rowOrderCol) === i)
             .drop(rowOrderCol)
           val title = oneRowDF.select(rowTitleColumn).first().getString(0)
           val contentInfo = dataframe2data(oneRowDF.drop(rowTitleColumn).orderBy(colOrderCol), limitShowNumber)
