@@ -61,7 +61,7 @@ object Viz {
                        ): String = {
     require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
     val addRowTitleDF = df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)).cast("string"))
-    val dropOriginRowTitleColDF = if(rowTitleCol != None){
+    val dropOriginRowTitleColDF = if(rowTitleCol.isDefined){
       addRowTitleDF.drop(rowTitleCol.get)
       }else{addRowTitleDF}
 
