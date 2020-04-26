@@ -1,6 +1,7 @@
 package io.github.fucusy
 
-import org.apache.spark.sql.{DataFrame, Row, functions => F}
+import org.apache.spark.sql.{Column, DataFrame, Row, functions => F}
+import org.apache.spark.sql.expressions.Window
 
 object Viz {
   def imgUrl2tag(url: String) = s"""<img src="$url" width="100"/>"""
@@ -41,26 +42,42 @@ object Viz {
   }
 
   /**
-   *
-   * @param df which need to contain column "row" to let us know which row you want to show. you should start with 1 in this column
-   *           df also need to contain column "title" to let us know the title of each visualization row.
-   *           you need to give the same title the all data you want to show in the same visualization row.
-   *           or we will randomly choose one title.
-   * @param limitShowNumber
-   * @return
-   */
+    * this method will change dataframe to html which is very convenient to show as a 2D visualization.
+    * since it's a 2D visualization, you must provide rowOrderCol and colOrderCol.
+    * @param df: the dataframe you want to convert to html
+    * @param rowOrderCol: the row order column
+    * @param colOrderCol:the col order column
+    * @param rowTitleCol: the row title column, for contents in the same row,
+    *                   you must provide the same title, if no, we will randomly choose one.
+    * @param limitShowNumber
+    * @return
+    */
 
   def dataframe2html2D(df: DataFrame,
-                       limitShowNumber: Int = -1): String = {
-    require(df.columns.contains("row") && df.columns.contains("title"))
-    val rowNum = df.select("row").distinct().count().toInt
-    val tables = (1 to rowNum)
+                       rowOrderCol: String,
+                       colOrderCol: String,
+                       rowTitleCol: Option[String] = None,
+                       limitShowNumber: Int = -1
+                       ): String = {
+    require(df.columns.contains(rowOrderCol) && df.columns.contains(colOrderCol))
+    val addRowTitleDF = df.withColumn("row_title", F.col(rowTitleCol.getOrElse(rowOrderCol)).cast("string"))
+    val dropOriginRowTitleColDF = if(rowTitleCol.isDefined){
+      addRowTitleDF.drop(rowTitleCol.get)
+      }else{addRowTitleDF}
+
+    val rowTitleColumn: Column = dropOriginRowTitleColDF.col("row_title")
+    val rowNumList = dropOriginRowTitleColDF.select(rowOrderCol)
+      .distinct()
+      .collect
+      .map(_.getAs[Int](rowOrderCol))
+      .sorted
+    val tables = rowNumList
       .map {
         i =>
-          val oneRowDF = df.filter(F.col("row") === i)
-            .drop("row")
-          val title = oneRowDF.select("title").first().getString(0)
-          val contentInfo = dataframe2data(oneRowDF.drop("title"), limitShowNumber)
+          val oneRowDF = dropOriginRowTitleColDF.filter(F.col(rowOrderCol) === i)
+            .drop(rowOrderCol)
+          val title = oneRowDF.select(rowTitleColumn).first().getString(0)
+          val contentInfo = dataframe2data(oneRowDF.drop(rowTitleColumn).orderBy(colOrderCol), limitShowNumber)
           data2table(contentInfo, title)
       }
       .mkString("\n")
